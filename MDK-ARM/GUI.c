@@ -1,0 +1,610 @@
+#include "stm32f4xx_hal.h"
+#include "Header.h"
+#include "stdbool.h"
+#include "LCD_Lib.h"
+#include "DWT_Delay.h"
+#include "stdio.h"
+#include "string.h"
+
+/* Initialization */
+/* Function */
+int buttonPress(GPIO_TypeDef *port, uint16_t pin, int delay);
+void testFunction(void);
+void silentFunction(void);
+void muteFunction(void);
+void resetFunction(void);
+void zone(int zoneIndex, char temp[]);
+void namezone(void);
+int menuSensingMode(void);
+int menuScanSensor(void);
+int menuSetThreshold(void);
+int menuSetNameZone(void);
+int selectMenu(void);
+/* Variable */
+char buff[40];
+bool lastb = 0;
+bool sensor;
+int charSize = 0;
+int charIndex = 0;
+unsigned int secdown = 60;
+int count = 0;
+int cx = 0;
+int cy = 0;
+int chx = 0;
+int selectedSensingMode;
+unsigned int valueSetInterval = 0;
+bool flagSucces = false;
+bool flag = 1;
+
+int test = 0;
+int countOut = 0;
+bool toggleT = 0;
+bool toggleM = 0;
+
+unsigned int time;
+
+int countBack = 0;
+int countLeft = 0;
+//> Temporary Variable per Zone
+char temp[16][40];
+char zoneUse[16];
+char temp1[40],temp2[40],temp2[40],temp3[40],temp4[40],temp5[40],temp6[40],temp7[40],
+	temp8[40],temp9[40],temp10[40],temp11[40],temp12[40],temp13[40],temp14[40],temp15[40],temp16[40];
+
+char tempAlpha[27];
+char alphabet[] = { ' ','A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'};
+	/*char zone[] = {"ZONE1 : ", "ZONE2: ", "ZONE3: ", "ZONE4: ", "ZONE5: ", "ZONE6: ", 
+		"ZONE7: ", "ZONE8: ", "ZONE9: ", "ZONE10: ", "ZONE11: ", "ZONE12: ", "ZONE13: ", "ZONE14: ",
+		"ZONE15: ", "ZONE16: "};*/
+char* ptrAlpha;
+char* ptrZone;
+//EEPROM
+	//HAL_DATA_EEPROMEx_Program();
+
+//Set Display Size
+	
+//Eliminate Debounce//
+
+int buttonPress(GPIO_TypeDef *port, uint16_t pin, int delay){
+	//HAL_I2C_Mem_Write();
+	bool button = BUTTON_Read(port, pin);
+	if(!button){
+		HAL_Delay(delay);
+		if(!button){
+			//LCD_Putsxy(0,0,"Stable Key");
+			return 0;
+		}
+		else if(button){
+			return 1;
+		}
+		//while(!button);
+	}
+}
+
+
+void interface(void){
+	testFunction();
+	silentFunction();
+	muteFunction();
+	resetFunction();
+}
+
+void testFunction(void){ //DONE
+	if(!buttonPress(BUTTON_TEST_PORT, BUTTON_TEST_PIN, 500)){
+		LCD_Clear();
+		while(1){
+			// bool alarm = 1;
+			LCD_Putsxy(0,0, "           Alarm ON!");
+			/*NYALAKKAN LAMPU ALARM*/
+			relayOn(0xFFFF);
+			buzzerOn(1000);
+			//buzzerOff(1000);
+			if(!buttonPress(BUTTON_RESET_PORT, BUTTON_RESET_PIN, 500)){
+				HAL_Delay(100);
+				LCD_Putsxy(0,0, "Alarm OFF!");
+				buzzerOff(0);
+				relayOff(18);
+				LCD_Clear();
+				break;
+			}
+		}
+	}
+}
+
+void silentFunction(void){
+	//while(sensor == 1){
+	if(sensor == 0){
+		if(!buttonPress(BUTTON_SILENT_PORT, BUTTON_SILENT_PIN, 500)){
+			LCD_Clear();
+			LCD_BlinkOff();
+			LCD_Putsxy(0,0, "Buzzer Off");
+			buzzerOff(1000);
+			//LCD_Putsxy(0,0, "Alarm On");
+			//count+= 1;
+			//secdown = secdown - count;
+			//DWT_Delayms(6000);
+			LCD_BlinkOff();
+			LCD_Clear();
+			//LCD_Putsxy(0,0,"Alarm OFF");
+			//DWT_Delayms(5000);
+			//LCD_Clear();
+			/* Alarm */
+			/* Alarm on Selama ++ */
+			/* Sesudah 1000 detik alarm mati */
+		}
+	}
+}
+
+void resetFunction(void){
+	//buttonPress(BUTTON_RESET_PORT, BUTTON_RESET_PIN);
+	if(sensor == 0 && !buttonPress(BUTTON_RESET_PORT, BUTTON_RESET_PIN, 500)){
+		LCD_Clear();
+		LCD_BlinkOff();
+		LCD_Putsxy(0,0,"           RESET SYSTEM");
+		HAL_Delay(2000);
+		LCD_BlinkOff();
+		LCD_Putsxy(0,0,"          RESTART SYSTEM");
+		HAL_Delay(5000);
+		/*Off all Alarm*/
+		NVIC_SystemReset();
+	}
+	else if(sensor == 1 && !buttonPress(BUTTON_RESET_PORT, BUTTON_RESET_PIN, 500)){
+		LCD_Clear();
+		LCD_Putsxy(0,0, "       SYSTEM CANNOT RESET");
+		/* Cannot off Alarm */
+	}
+	
+}
+
+void muteFunction(void){
+	//if(sensor == 1){
+	if(sensor == 0){	
+		if(!buttonPress(BUTTON_MUTE_PORT, BUTTON_MUTE_PIN, 500)){
+			LCD_Clear();
+			/* Buzzer OFF */
+			while(1){/*Buzzer OFF*/
+				LCD_Putsxy(0,0,"BUZZER OFF");
+				if(!buttonPress(BUTTON_RESET_PORT, BUTTON_RESET_PIN, 500)){
+					LCD_Clear();
+					break;}
+			}
+		}
+		else{
+			
+		}
+	}
+}
+
+
+
+void troubleFunction(void){
+	/*Jika Buttry Tidak Connect */
+	LCD_Putsxy(0,0, "Battery Disconnect");
+	
+	/*Jika Power AC Loss*/
+	LCD_Putsxy(1,0, "AC Power Loss");
+	
+	/*SIstem Disable*/
+	/* Parameternya APAAA?? */
+}
+void zone(int zoneIndex, char temp[]){
+	//int zoneNumber = zoneIndex;
+	int couterrr = 0;
+	char buffer[40];
+	char* ptrAlpha;
+	temp[0] = ' ';
+	
+	if(zoneIndex <= 9){
+		cx = 8;
+		chx = 8;
+	}
+	else if(zoneIndex >= 10){
+		cx = 9;
+		chx = 9;
+	}
+	//cx = 7;
+	//chx = 7;
+	
+	while(1){
+		sprintf(buffer, "ZONE %d:", zoneIndex);
+		LCD_Putsxy(0,0,buffer);
+		LCD_CursorSet(cx,0);
+		LCD_BlinkOn();
+		if(cx <= chx){cx = chx;}
+		else if(cx >= 39){cx = 39;}
+						
+		if(!buttonPress(BUTTON_UP_PORT, BUTTON_UP_PIN, 500)){
+			charIndex++;
+			if(charIndex == charSize){
+				charIndex = 0;
+			}
+			if(charIndex > 26){
+				charIndex = 0;
+			}
+			ptrAlpha = &alphabet[charIndex];
+			LCD_CursorSet(cx,0);
+			//LCD_BlinkOn();
+			LCD_Puts(1, ptrAlpha);
+			HAL_Delay(200);
+		}
+		else if(!buttonPress(BUTTON_DOWN_PORT, BUTTON_DOWN_PIN, 500)){
+			charIndex--;
+			if(charIndex < 0){
+				charIndex = 26;
+			}
+			if(charIndex > 26){charIndex = 1;}
+			else if(charIndex < 0){charIndex = 26;}
+			
+			ptrAlpha = &alphabet[charIndex];
+			LCD_CursorSet(cx, 0);
+			//LCD_BlinkOn();
+			LCD_Puts(1, ptrAlpha);
+			HAL_Delay(200);
+		}
+					
+		if(!buttonPress(BUTTON_OK_PORT, BUTTON_OK_PIN, 500)){
+			couterrr++;
+			temp[couterrr] = alphabet[charIndex];
+			LCD_CursorSet(cx, 0);
+			LCD_Puts(1, ptrAlpha);
+			charIndex = 0;			
+			cx++;
+			HAL_Delay(200);
+		}
+					
+		if(!buttonPress(BUTTON_RIGHT_PORT, BUTTON_RIGHT_PIN, 500)){
+			countBack++;
+			if(countBack > 4){
+				LCD_Clear();
+				sprintf(buffer, "       SAVE NAME ZONE %d SUCCESS", zoneIndex);
+				LCD_Putsxy(0,0, buffer);
+				LCD_Putsxy(0,1, temp);
+				HAL_Delay(5000);
+				countBack = 0;
+				LCD_Clear();
+				break;
+			}
+		}
+							
+		if(!buttonPress(BUTTON_LEFT_PORT, BUTTON_LEFT_PIN, 500)){
+			countLeft++;
+			if(countLeft > 4){
+				countLeft = 0;
+			break;
+			}
+		}
+	}
+}
+void namezone(){
+
+	//LCD_BlinkOn();
+	if(count < 0){count = 15;}
+	else if(count > 15){count = 0;}
+	
+	if(!buttonPress(BUTTON_UP_PORT, BUTTON_UP_PIN, 500)){
+		count++;
+	}
+	else if(!buttonPress(BUTTON_DOWN_PORT, BUTTON_DOWN_PIN, 500)){
+		count--;
+	}
+	
+	else if(!buttonPress(BUTTON_OK_PORT, BUTTON_OK_PIN, 500)){
+		LCD_Clear();
+		switch(count){
+			case 0:
+				zone(1, temp1);
+					//zoneTry(1, temp[1][40], 0);
+			break;
+			case 1:
+				zone(2, temp2);
+			break;
+			case 2:
+				zone(3, temp3);
+			break;
+			case 3:
+				zone(4, temp4);
+			break;
+			case 4:
+				zone(5, temp5);
+			break;
+			case 5:
+				zone(6, temp6);
+			break;
+			case 6:
+				zone(7, temp7);
+			break;
+			case 7:
+				zone(8, temp8);
+			break;
+			case 8:
+				zone(9, temp9);
+			break;
+			case 9:
+				zone(10, temp10);;
+			break;
+			case 10:
+				zone(11, temp11);
+			break;
+			case 11:
+				zone(12, temp12);
+			break;
+			case 12:
+				zone(13, temp13);
+			break;
+			case 13:
+				zone(14, temp14);;
+			break;
+			case 14:
+				zone(15, temp15);
+			break;
+			case 15:
+				zone(16, temp16);
+			break;
+
+			default:
+					LCD_Putsxy(0,0, "CASE LOOP AGAIN");
+			break;		
+		}
+	}
+	
+	switch(count){
+		case 0:
+			LCD_Putsxy(0,0,"INPUT NAME IN ZONE 1? ");
+		break;
+		case 1:
+			LCD_Putsxy(0,0,"INPUT NAME IN ZONE 2?");
+		break;
+		case 2:
+			LCD_Putsxy(0,0,"INPUT NAME IN ZONE 3?");
+		break;
+		case 3:
+			LCD_Putsxy(0,0,"INPUT NAME IN ZONE 4?");
+		break;
+		case 4:
+			LCD_Putsxy(0,0,"INPUT NAME IN ZONE 5?");
+		break;
+		case 5:
+			LCD_Putsxy(0,0,"INPUT NAME IN ZONE 6?");
+		break;
+		case 6:
+			LCD_Putsxy(0,0,"INPUT NAME IN ZONE 7?");
+		break;
+		case 7:
+			LCD_Putsxy(0,0,"INPUT NAME IN ZONE 8?");
+		break;
+		case 8:
+			LCD_Putsxy(0,0,"INPUT NAME IN ZONE 9? ");
+		break;
+		case 9:
+			LCD_Putsxy(0,0,"INPUT NAME IN ZONE 10?");
+		break;
+		case 10:
+			LCD_Putsxy(0,0,"INPUT NAME IN ZONE 11?");
+		break;
+		case 11:
+			LCD_Putsxy(0,0,"INPUT NAME IN ZONE 12?");
+		break;
+		case 12:
+			LCD_Putsxy(0,0,"INPUT NAME IN ZONE 13?");
+		break;
+		case 13:
+			LCD_Putsxy(0,0,"INPUT NAME IN ZONE 14?");
+		break;
+		case 14:
+			LCD_Putsxy(0,0,"INPUT NAME IN ZONE 15?");
+		break;
+		case 15:
+			LCD_Putsxy(0,0,"INPUT NAME IN ZONE 16?");
+		break;
+	}
+}
+int menuSetNameZone(void){
+	bool flagSetName = false;
+	int count = 0;
+	LCD_Clear();
+	while(1){
+		namezone();
+		if(!buttonPress(BUTTON_LEFT_PORT, BUTTON_LEFT_PIN, 500)){
+			// check the used zone
+					if(strlen(temp1) > 1) {
+						count++;
+						zoneUse[0] = 1;
+					}
+					if(strlen(temp2) > 1) {
+						count++;
+						zoneUse[1] = 2;
+					}
+				
+				if(count != 0){
+					flagSetName = true;
+				}else{
+					flagSetName = false;
+				}
+			break;
+		}			
+	}
+	return flagSetName;
+}
+int menuSensingMode(void){
+	bool sensingSelected = false;
+	int count = 0;
+		LCD_Clear();
+		LCD_Putsxy(0,0, "=> MENU SENSING MODE <=");
+		while(1){
+		if(!buttonPress(BUTTON_DOWN_PORT, BUTTON_DOWN_PIN, 500)){ 			// BUTTON DOWN
+			count++;
+			if(count > 2) count = 2;
+		}else if(!buttonPress(BUTTON_UP_PORT, BUTTON_UP_PIN, 500)){		// BUTTON UP
+			count--;
+			if(count <= 0) count = 1;
+		}else if(!buttonPress(BUTTON_OK_PORT, BUTTON_OK_PIN, 500)){		// BUTTON OK
+			if(count == 1){
+				LCD_Clear();
+				sensingSelected = true;
+				selectedSensingMode = 1;	// SELECT MODE SINGLE WIRE
+				break;
+			}else if(count == 2){
+				LCD_Clear();
+				sensingSelected = true;
+				selectedSensingMode = 2; 	// SELECT MODE CROSS WIRE
+				break;
+			}else{
+				LCD_Clear();
+				sensingSelected = false;
+				selectedSensingMode = 0;	// BELUM DIPILIH
+				break;
+			}
+		}else if(!buttonPress(BUTTON_LEFT_PORT, BUTTON_LEFT_PIN, 500)){	// BUTTON BACK
+			LCD_Clear();
+			sensingSelected = false;	
+			selectedSensingMode = 0;		// BELUM DIPILIH
+			break;
+		}
+		
+			if(count == 1){
+				LCD_Putsxy(0,1, "MODE SINGLE WIRE          ");
+			}else if(count == 2){
+				LCD_Putsxy(0,1, "MODE CROSS WIRE           ");
+			}else{
+				LCD_Putsxy(0,1, "USE UP&DOWN KEYS TO SELECT");
+			}
+
+		}
+	return sensingSelected;
+}
+
+int menuScanSensor(void){
+	bool flagScanSensor = false;
+	char bufferr[50];
+	LCD_Clear();
+	while(1){
+		LCD_Putsxy(0,0, "==========> MENU SCAN SENSOR <==========");
+		LCD_Putsxy(0,1,"Press OK TO SCAN or BACK TO CANCEL");
+		if(!buttonPress(BUTTON_OK_PORT, BUTTON_OK_PIN, 500)){
+			LCD_Clear();
+			LCD_Putsxy(0,0, "Sensor scan is processed");
+			LCD_Putsxy(0,1, "Please wait...");
+			HAL_Delay(2000);
+			LCD_Clear();
+			flagScanSensor = scanSensor();
+			if(flagScanSensor == true){		// APABILA SCAN SUKSES
+				LCD_Clear();
+				break;
+			}
+		}else if(!buttonPress(BUTTON_LEFT_PORT, BUTTON_LEFT_PIN, 500)){
+			LCD_Clear();
+			flagScanSensor = false;
+			break;
+		}
+	}
+	return flagScanSensor;
+}
+int menuSetThreshold(void){
+	char bufferr[30];
+	unsigned int value = 0;
+	bool flagSetThreshold = false;
+	LCD_Clear();
+	LCD_Putsxy(0,0,"MENU SET THRESHOLD VALUE");
+	while(1){
+		if(!buttonPress(BUTTON_DOWN_PORT, BUTTON_DOWN_PIN, 100)){		// INCREMENT
+			value++;
+		}else if(!buttonPress(BUTTON_UP_PORT, BUTTON_UP_PIN, 100)){	// DECREMENT
+			value--;
+		}else if(!buttonPress(BUTTON_LEFT_PORT, BUTTON_LEFT_PIN, 500)){	// CANCEL
+			flagSetThreshold = false;
+			valueSetInterval = 0;
+			break;
+		}else if(!buttonPress(BUTTON_OK_PORT, BUTTON_OK_PIN, 500)){		// OK ATAU SAVE
+			if(value != 0){
+				flagSetThreshold = true;
+				valueSetInterval = value;
+				LCD_Clear();
+				sprintf(bufferr, "Threshold value %d saved", value);
+				LCD_Putsxy(0,1,bufferr);
+				HAL_Delay(2000);
+				LCD_Clear();
+				break;
+			}else{
+				flagSetThreshold = false;
+				LCD_Clear();
+				LCD_Putsxy(0,0,"Save threshold value failed");
+				LCD_Putsxy(0,1,"Because threshold value is 0");
+				HAL_Delay(2000);
+				LCD_Clear();
+			}
+		}
+		sprintf(bufferr, "VALUE : %d", value);
+		LCD_Putsxy(0,1,bufferr);
+	}
+	return flagSetThreshold;
+}
+void RunningSystem(void){
+	LCD_Clear();
+	LCD_Putsxy(0,0, "SYSTEM RUN");
+}
+int selectMenu(void){
+	bool flagSystemSIP = false;
+	int count = 0;
+	int increm = 0;
+	bool flagSetMenu[4] = {false, false, false, false};
+	LCD_Clear();
+	LCD_Putsxy(0,0,"MENU OPTIONS");
+	LCD_Putsxy(0,1,"PRESS UP & DOWN TO CHOOSE");
+	HAL_Delay(3000);
+	LCD_Clear();
+	while(1){
+			interface();
+			LCD_Putsxy(0,0,"============> MENU OPTIONS <============");
+		if(!buttonPress(BUTTON_DOWN_PORT, BUTTON_DOWN_PIN, 500)){
+			count--;
+			if(count < 0) count = 0;
+		}else if(!buttonPress(BUTTON_UP_PORT, BUTTON_UP_PIN, 500)){
+			count++;
+			if(count > 3) count = 3;
+		}else if(!buttonPress(BUTTON_OK_PORT, BUTTON_OK_PIN, 500)){
+			if(count == 0){
+				 flagSetMenu[0] = menuSensingMode();
+
+			}else if(count == 1){
+				 flagSetMenu[1] =  menuSetNameZone();
+			}else if(count == 2){
+				flagSetMenu[2] = menuScanSensor();
+			}else if(count == 3){
+				flagSetMenu[3] = menuSetThreshold();
+			}
+		}
+		
+		if(count == 0){
+			LCD_Putsxy(0,1, "SENSING MODE MENU");
+		}else if(count == 1){
+			LCD_Putsxy(0,1, "ZONE NAME MENU   ");
+		}else if(count == 2){
+			LCD_Putsxy(0,1, "SCAN SENSOR MENU ");
+		}else if(count == 3){
+			LCD_Putsxy(0,1, "SET INTERVAL MENU");
+		}
+		
+		// CHECK APABILA SYSTEM TERPENUHI
+		if((flagSetMenu[0] == true) && (flagSetMenu[1] == true) && (flagSetMenu[2] == true) && (flagSetMenu[3] == true)){
+			LCD_Clear();
+			sprintf(buff, " SETTING SUCCESS => %d || %d || %d || %d", flagSetMenu[0],flagSetMenu[1],flagSetMenu[2],flagSetMenu[3]);
+			LCD_Putsxy(0,0, buff);
+			flagSystemSIP = true;
+			HAL_Delay(3000);
+			break;
+		}			
+		
+	}
+	return flagSystemSIP;
+}
+
+
+
+
+
+
+
+
+
+
+
