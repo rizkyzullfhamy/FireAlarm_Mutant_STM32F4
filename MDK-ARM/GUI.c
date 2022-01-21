@@ -475,7 +475,7 @@ int menuSensingMode(void){
 
 int menuScanSensor(void){
 	bool flagScanSensor = false;
-	char bufferr[50];
+//	char bufferr[50];
 	LCD_Clear();
 	while(1){
 		LCD_Putsxy(0,0, "==========> MENU SCAN SENSOR <==========");
@@ -545,7 +545,7 @@ void RunningSystem(void){
 int selectMenu(void){
 	bool flagSystemSIP = false;
 	int count = 0;
-	int increm = 0;
+//	int increm = 0;
 	bool flagSetMenu[4] = {false, false, false, false};
 	LCD_Clear();
 	LCD_Putsxy(0,0,"MENU OPTIONS");
