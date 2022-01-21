@@ -133,6 +133,43 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
+		
+		
+		// Program Main utama Terbaru Namun Belum integrasi dengan Parsing data UART
+		if(systemSetOK == false){
+			while(1){
+				if(systemSetOK == false){
+					systemSetOK =  selectMenu();
+					LCD_Clear();
+				}else{
+					sprintf(bufferr, "MODE %d || INT %d", selectedSensingMode, valueSetInterval);
+					LCD_Putsxy(0,0, "SYSTEM RUNNING");
+					LCD_Putsxy(0,1, bufferr);
+					HAL_Delay(2000);
+					LCD_Clear();
+					break;
+				}
+			}
+		}else{
+		
+		// JALANKAN PROGRAM RUNNING SYSTEM IN HERE
+		if(selectedSensingMode == 1){
+			LCD_Putsxy(18,0, "MUTANT");
+			LCD_Putsxy(12,1, "30 NOV 2021, 00.10 WIB");
+			modeSingleWire();
+			checkSortAndOpenCircuit();
+			checkOverCurrentSensor();
+		}else if(selectedSensingMode == 2){
+			LCD_Putsxy(18,0, "MUTANT");
+			LCD_Putsxy(12,1, "30 NOV 2021, 00.10 WIB");
+			modeCrossWire();
+			checkSortAndOpenCircuit();
+			checkOverCurrentSensor();
+		}
+	} 
+		
+		// UNTUK TEST UART F1 TO F4 MAUPUN SEBALIKNYA
+		/*
 				sprintf(tx, "%s\r\n", tmp2);
 				HAL_UART_Transmit(&huart6,(uint8_t *) tx, strlen(tx), 100);
 				sprintf(bufferr, "Data Waktu : %s | Data F1 : %s\r\n", dateTime, dataF1);
@@ -140,6 +177,9 @@ int main(void)
 				flagRx == true ? parsingDataF1() : HAL_Delay(500);
 		
 				HAL_Delay(1000);
+		*/
+		
+		
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
