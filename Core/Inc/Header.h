@@ -13,6 +13,12 @@ extern int selectedSensingMode;
 extern unsigned int valueSetInterval;
 /* SENSOR GLOBAL VARIABLE */
 extern float currentSegment[16];
+/* COMMUNICATION GLOBAL VARIABLE */
+extern char tx[100];
+extern bool flagRx;
+extern char dateTime[100];
+extern char dataF1[100];
+extern char tampungData[100];
 //DISPLAY-SIZE
 #endif
 
@@ -81,6 +87,8 @@ extern void modeSingleWire(void);
 extern void modeCrossWire(void);
 extern void checkSortAndOpenCircuit(void);
 extern void checkOverCurrentSensor(void);
+/* COMMUNICATION */
+extern void parsingDataF1(void);
 #endif
 
 

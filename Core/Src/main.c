@@ -23,6 +23,8 @@
 #include "stdio.h"
 #include "LCD_Lib.h"
 #include "Header.h"
+#include "String.h"
+
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 /* USER CODE END Includes */
@@ -61,19 +63,25 @@ static void MX_USART6_UART_Init(void);
 static void MX_DMA_Init(void);
 static void MX_ADC1_Init(void);
 /* USER CODE BEGIN PFP */
-
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-/*#include	<stdio.h>
+/*#include "main.h"
 #include "stdbool.h"
-#include "string.h"
+#include "stdio.h"
 #include "LCD_Lib.h"
+#include "Header.h"
+#include "String.h"
 */
 char bufferr[100];
 uint32_t adcBuffer[16];
 bool systemSetOK = false;
+//==========KOMUNIKASI==============//
+uint8_t rx_buff;
+uint16_t i;
+char Rx[50], tmp2[50];
+//==================================//
 /* USER CODE END 0 */
 
 /**
@@ -111,6 +119,7 @@ int main(void)
   MX_ADC1_Init();
   /* USER CODE BEGIN 2 */
 	HAL_ADC_Start_DMA(&hadc1, adcBuffer, 16);
+	__HAL_UART_ENABLE_IT(&huart6, UART_IT_RXNE);
 	LCD_Init(40,2);
 	LCD_CursorSet(0,0);
 	LCD_Putsxy(0, 0,"====> MUTANT <====");
@@ -124,11 +133,9 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-		/*sprintf(bufferr,"%d || %d || %d || %d || %d", adcBuffer[0], adcBuffer[1], adcBuffer[2], adcBuffer[4], adcBuffer[10]);
-		LCD_Putsxy(0,0, bufferr);
-		HAL_Delay(200);		
-		LCD_Clear();
-		*/
+		
+		
+		// Program Main utama Terbaru Namun Belum integrasi dengan Parsing data UART
 		if(systemSetOK == false){
 			while(1){
 				if(systemSetOK == false){
@@ -159,9 +166,18 @@ int main(void)
 			checkSortAndOpenCircuit();
 			checkOverCurrentSensor();
 		}
-	}
-
+	} 
 		
+		// UNTUK TEST UART F1 TO F4 MAUPUN SEBALIKNYA
+		/*
+				sprintf(tx, "%s\r\n", tmp2);
+				HAL_UART_Transmit(&huart6,(uint8_t *) tx, strlen(tx), 100);
+				sprintf(bufferr, "Data Waktu : %s | Data F1 : %s\r\n", dateTime, dataF1);
+				HAL_UART_Transmit(&huart6,(uint8_t *) bufferr, strlen(bufferr), 100);
+				flagRx == true ? parsingDataF1() : HAL_Delay(500);
+		
+				HAL_Delay(1000);
+		*/
 		
 		
     /* USER CODE BEGIN 3 */
@@ -441,7 +457,7 @@ static void MX_USART1_UART_Init(void)
   huart1.Init.Mode = UART_MODE_TX_RX;
   huart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
   huart1.Init.OverSampling = UART_OVERSAMPLING_16;
-  if (HAL_HalfDuplex_Init(&huart1) != HAL_OK)
+  if (HAL_UART_Init(&huart1) != HAL_OK)
   {
     Error_Handler();
   }
@@ -524,11 +540,10 @@ static void MX_GPIO_Init(void)
                           |LIM9_Pin|RL_10_Pin|RL_11_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOC, RL_5_Pin|RL_2_Pin|RL_3_Pin|GPIO_PIN_10
-                          |GPIO_PIN_11, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOC, RL_3_Pin|RL_1_Pin|RL_2_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOH, RL_0_Pin|RL_1_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(RL_0_GPIO_Port, RL_0_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, LIM0_Pin|LIM10_Pin|LIM11_Pin|LIM12_Pin
@@ -540,7 +555,7 @@ static void MX_GPIO_Init(void)
                           |LCD_B4_Pin|LCD_B5_Pin|LCD_B6_Pin|LCD_B7_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8|BUZZER_Pin|GPIO_PIN_15, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, BUZZER_Pin|RL_5_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pins : RL_8_Pin RL_9_Pin RL_6_Pin RL_7_Pin
                            LIM1_Pin LIM2_Pin LIM3_Pin LIM4_Pin
@@ -561,21 +576,19 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(RL_4_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : RL_5_Pin RL_2_Pin RL_3_Pin PC10
-                           PC11 */
-  GPIO_InitStruct.Pin = RL_5_Pin|RL_2_Pin|RL_3_Pin|GPIO_PIN_10
-                          |GPIO_PIN_11;
+  /*Configure GPIO pins : RL_3_Pin RL_1_Pin RL_2_Pin */
+  GPIO_InitStruct.Pin = RL_3_Pin|RL_1_Pin|RL_2_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : RL_0_Pin RL_1_Pin */
-  GPIO_InitStruct.Pin = RL_0_Pin|RL_1_Pin;
+  /*Configure GPIO pin : RL_0_Pin */
+  GPIO_InitStruct.Pin = RL_0_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOH, &GPIO_InitStruct);
+  HAL_GPIO_Init(RL_0_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : LIM0_Pin LIM10_Pin LIM11_Pin LIM12_Pin
                            LIM13_Pin RL_16_Pin RL_14_Pin RL_15_Pin
@@ -597,23 +610,23 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PC9 BT_9_Pin */
-  GPIO_InitStruct.Pin = GPIO_PIN_9|BT_9_Pin;
+  /*Configure GPIO pins : BT_10_Pin BT_9_Pin */
+  GPIO_InitStruct.Pin = BT_10_Pin|BT_9_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PA8 BUZZER_Pin PA15 */
-  GPIO_InitStruct.Pin = GPIO_PIN_8|BUZZER_Pin|GPIO_PIN_15;
+  /*Configure GPIO pins : BUZZER_Pin RL_5_Pin */
+  GPIO_InitStruct.Pin = BUZZER_Pin|RL_5_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : BT_10_Pin BT_7_Pin BT_8_Pin BT_5_Pin
-                           BT_6_Pin BT_3_Pin BT_4_Pin BT_1_Pin */
-  GPIO_InitStruct.Pin = BT_10_Pin|BT_7_Pin|BT_8_Pin|BT_5_Pin
-                          |BT_6_Pin|BT_3_Pin|BT_4_Pin|BT_1_Pin;
+  /*Configure GPIO pins : BT_7_Pin BT_8_Pin BT_5_Pin BT_6_Pin
+                           BT_3_Pin BT_4_Pin BT_1_Pin */
+  GPIO_InitStruct.Pin = BT_7_Pin|BT_8_Pin|BT_5_Pin|BT_6_Pin
+                          |BT_3_Pin|BT_4_Pin|BT_1_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
@@ -627,7 +640,25 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
+	switch(rx_buff)
+	{
+		case ';':
+			for(int countt=0; countt < i; countt++){
+				 memset(tmp2, 0, sizeof(tmp2) * (sizeof tmp2[countt]) );
+				//memset(tmp2, 0, sizeof(tmp2));
+			}				
+			strncpy(tmp2, Rx, i); 
+			flagRx = true;
+			i =0; 
+			break;
+		default: Rx[i++] = rx_buff;
+	}
+}
+void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart){
+	UNUSED(huart);
+	//__NOP();
+}
 /* USER CODE END 4 */
 
 /**
