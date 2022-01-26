@@ -7,6 +7,8 @@
 #include "String.h"
 /* INITIALIZE FUNCTION */
 void parsingDataF1(void);
+void sendDateTime(void);
+void sendDataSegment(void);
 /* VARIABLE */
 char tx[100];
 //uint8_t rx_buff;
@@ -33,7 +35,7 @@ void parsingDataF1(void){
 				}
 				//HAL_UART_Transmit(&huart6,(uint8_t *) RxSip1, strlen(RxSip1), 100);
 				flag1 = true;
-			}else if(j == 2 && flag2 == false){
+			}else if(j == 2 && flag2 == false){			// BUAT TAMBAHAN APABILA ADA DATA DI F1 MAU DIKIRIMKAN KE F4 
 				memset(dataF1, 0, sizeof(dataF1));
 				uint8_t tmpIndex = i;
 				tmpIndex -= 4;			// prev index 
@@ -48,4 +50,28 @@ void parsingDataF1(void){
 	}
 	memset(tampungData, 0, sizeof(tampungData));
 	flagRx = false;
+}
+
+void sendDateTime(void){
+	char bufferDateTime [100];
+	
+	sprintf(bufferDateTime, "%d,%d,%d,%d,%d,%d,",hour,minute,second,day,month,year);
+	
+	for(int i = 0; i < 20; i++){
+		HAL_UART_Transmit(&huart6,(uint8_t *) bufferDateTime, strlen(bufferDateTime), 100);
+		HAL_Delay(200);
+	}	
+}
+
+void sendDataSegment(void){
+	char bufferData [100];
+	
+	sprintf(bufferData, "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d", 
+	dataSeg[0], dataSeg[1], dataSeg[2], dataSeg[3],dataSeg[4],dataSeg[5], dataSeg[6], dataSeg[7], 
+	dataSeg[8],dataSeg[9],dataSeg[10], dataSeg[11], dataSeg[12], dataSeg[13],dataSeg[14],dataSeg[15]);
+	
+		for(int i = 0; i < 20; i++){
+			HAL_UART_Transmit(&huart6,(uint8_t *) bufferData, strlen(bufferData), 100);
+			HAL_Delay(200);
+		}
 }

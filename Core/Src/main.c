@@ -134,8 +134,7 @@ int main(void)
   {
     /* USER CODE END WHILE */
 		
-		
-		// Program Main utama Terbaru Namun Belum integrasi dengan Parsing data UART
+		// Program Main utama Terbaru SUDAH integrasi
 		if(systemSetOK == false){
 			while(1){
 				if(systemSetOK == false){
@@ -155,18 +154,23 @@ int main(void)
 		// JALANKAN PROGRAM RUNNING SYSTEM IN HERE
 		if(selectedSensingMode == 1){
 			LCD_Putsxy(18,0, "MUTANT");
-			LCD_Putsxy(12,1, "30 NOV 2021, 00.10 WIB");
+			//LCD_Putsxy(12,1, "30 NOV 2021, 00.10 WIB");
+			LCD_Putsxy(12, 1, dateTime);
 			modeSingleWire();
+			sendDataSegment(); 		//STMF4 TO F1
 			checkSortAndOpenCircuit();
 			checkOverCurrentSensor();
 		}else if(selectedSensingMode == 2){
 			LCD_Putsxy(18,0, "MUTANT");
-			LCD_Putsxy(12,1, "30 NOV 2021, 00.10 WIB");
+			//LCD_Putsxy(12,1, "30 NOV 2021, 00.10 WIB");
+			LCD_Putsxy(12, 1, dateTime);
 			modeCrossWire();
+			sendDataSegment(); 		//STMF4 TO F1
 			checkSortAndOpenCircuit();
 			checkOverCurrentSensor();
 		}
 	} 
+
 		
 		// UNTUK TEST UART F1 TO F4 MAUPUN SEBALIKNYA
 		/*
