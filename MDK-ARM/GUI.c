@@ -20,6 +20,8 @@ int menuScanSensor(void);
 int menuSetThreshold(void);
 int menuSetNameZone(void);
 int selectMenu(void);
+int menuSetDateTime(void);
+int dateTimeSet(int timeMode);
 /* Variable */
 char buff[40];
 bool lastb = 0;
@@ -53,6 +55,9 @@ char temp1[40],temp2[40],temp2[40],temp3[40],temp4[40],temp5[40],temp6[40],temp7
 
 char tempAlpha[27];
 char alphabet[] = { ' ','A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'};
+	
+uint8_t hour,minute,second,day,month,year;
+	
 	/*char zone[] = {"ZONE1 : ", "ZONE2: ", "ZONE3: ", "ZONE4: ", "ZONE5: ", "ZONE6: ", 
 		"ZONE7: ", "ZONE8: ", "ZONE9: ", "ZONE10: ", "ZONE11: ", "ZONE12: ", "ZONE13: ", "ZONE14: ",
 		"ZONE15: ", "ZONE16: "};*/
@@ -176,7 +181,6 @@ void muteFunction(void){
 }
 
 
-
 void troubleFunction(void){
 	/*Jika Buttry Tidak Connect */
 	LCD_Putsxy(0,0, "Battery Disconnect");
@@ -275,6 +279,7 @@ void zone(int zoneIndex, char temp[]){
 		}
 	}
 }
+
 void namezone(){
 
 	//LCD_BlinkOn();
@@ -499,6 +504,71 @@ int menuScanSensor(void){
 	}
 	return flagScanSensor;
 }
+int dateTimeSet(int timeMode){
+	char bufferr[30];
+	unsigned int value = 0;
+	if(timeMode == 6)value = 2000;
+	LCD_Clear();
+	LCD_Putsxy(0,0,"MENU SET DATE TIME");
+	while(1){
+		if(!buttonPress(BUTTON_DOWN_PORT, BUTTON_DOWN_PIN, 100)){			// DOWN
+			value++;
+		}else if(!buttonPress(BUTTON_UP_PORT, BUTTON_DOWN_PIN, 100)){		// UP
+			value--;
+		}else if(!buttonPress(BUTTON_LEFT_PORT, BUTTON_LEFT_PIN, 500)){		// CANCEL
+			value = 0;
+			//valueSetInterval = 0;
+			break;
+		}else if(!buttonPress(BUTTON_OK_PORT, BUTTON_OK_PIN, 500)){				// OK
+			if(value != 0){
+				//valueSetInterval = value;
+				LCD_Clear();
+				if(timeMode == 1){
+					sprintf(bufferr, "Set Hour value %d saved", value);
+				}else if(timeMode == 2){
+					sprintf(bufferr, "Set Minute value %d saved", value);
+				}else if(timeMode == 3){
+					sprintf(bufferr, "Set Second value %d saved", value);
+				}else if(timeMode == 4){
+					sprintf(bufferr, "Set Day value %d saved", value);
+				}else if(timeMode == 5){
+					sprintf(bufferr, "Set Month value %d saved", value);
+				}else if(timeMode == 6){
+					sprintf(bufferr, "Set Year value %d saved", value);
+				}
+				LCD_Putsxy(0,1,bufferr);
+				HAL_Delay(2000);
+				LCD_Clear();
+				break;
+			}else{
+				LCD_Clear();
+				if(timeMode == 1){
+					LCD_Putsxy(0,0,"Save Hour value failed");
+					LCD_Putsxy(0,1,"Because Hour value is 0");
+				}else if(timeMode == 2){
+					LCD_Putsxy(0,0,"Save Minute value failed");
+					LCD_Putsxy(0,1,"Because Minute value is 0");
+				}else if(timeMode == 3){
+					LCD_Putsxy(0,0,"Save Second value failed");
+					LCD_Putsxy(0,1,"Because Second value is 0");
+				}else if(timeMode == 4){
+					LCD_Putsxy(0,0,"Save Day value failed");
+					LCD_Putsxy(0,1,"Because Day value is 0");
+				}else if(timeMode == 5){
+					LCD_Putsxy(0,0,"Save Month value failed");
+					LCD_Putsxy(0,1,"Because Month value is 0");
+				}else if(timeMode == 6){
+					LCD_Putsxy(0,0,"Save year value failed");
+					LCD_Putsxy(0,1,"Because year value is 0");
+				}
+				HAL_Delay(2000);
+				LCD_Clear();
+			}
+		}
+	}
+	
+	return value;
+}
 int menuSetThreshold(void){
 	char bufferr[30];
 	unsigned int value = 0;
@@ -538,6 +608,39 @@ int menuSetThreshold(void){
 	}
 	return flagSetThreshold;
 }
+int menuSetDateTime(void){
+	bool flagDateTime = false;
+	uint8_t plus = 0;
+	while(1){
+		plus++;
+		if(plus == 1){				// SET HOUR
+			hour = dateTimeSet(1);
+			if(hour <= 0) break;
+		}else if(plus == 2){	// SET MINUTE
+			minute = dateTimeSet(2);
+			if(minute <= 0) plus = 0;
+		}else if(plus == 3){	// SET SECOND
+			second = dateTimeSet(3);
+			if(second <= 0) plus = 1;
+		}else if(plus == 4){	// SET DAY
+		  day = dateTimeSet(4);
+			if(day <= 0) plus = 2;
+		}else if(plus == 5){	// SET MONTH
+			month = dateTimeSet(5);
+			if(month <= 0) plus = 3;
+		}else if(plus == 6){	// SET YEAR
+			year = dateTimeSet(6);
+			if(year <= 0) plus = 4;
+		}
+		
+		// CHECK APABILA SEMUA TERISI
+		if(hour > 0 && minute > 0 && second > 0 && day > 0 && month > 0 && year > 0){
+			break;
+			flagDateTime = true;
+		}			
+	}
+	return flagDateTime;
+}
 void RunningSystem(void){
 	LCD_Clear();
 	LCD_Putsxy(0,0, "SYSTEM RUN");
@@ -546,7 +649,7 @@ int selectMenu(void){
 	bool flagSystemSIP = false;
 	int count = 0;
 //	int increm = 0;
-	bool flagSetMenu[4] = {false, false, false, false};
+	bool flagSetMenu[5] = {false, false, false, false, false};
 	LCD_Clear();
 	LCD_Putsxy(0,0,"MENU OPTIONS");
 	LCD_Putsxy(0,1,"PRESS UP & DOWN TO CHOOSE");
@@ -560,17 +663,18 @@ int selectMenu(void){
 			if(count < 0) count = 0;
 		}else if(!buttonPress(BUTTON_UP_PORT, BUTTON_UP_PIN, 500)){
 			count++;
-			if(count > 3) count = 3;
+			if(count > 3) count = 4;
 		}else if(!buttonPress(BUTTON_OK_PORT, BUTTON_OK_PIN, 500)){
 			if(count == 0){
 				 flagSetMenu[0] = menuSensingMode();
-
 			}else if(count == 1){
 				 flagSetMenu[1] =  menuSetNameZone();
 			}else if(count == 2){
 				flagSetMenu[2] = menuScanSensor();
 			}else if(count == 3){
 				flagSetMenu[3] = menuSetThreshold();
+			}else if(count == 4){
+				flagSetMenu[4] = menuSetDateTime();
 			}
 		}
 		
@@ -582,12 +686,14 @@ int selectMenu(void){
 			LCD_Putsxy(0,1, "SCAN SENSOR MENU ");
 		}else if(count == 3){
 			LCD_Putsxy(0,1, "SET INTERVAL MENU");
+		}else if(count == 4){
+			LCD_Putsxy(0,1, "SET DateTime MENU");
 		}
 		
 		// CHECK APABILA SYSTEM TERPENUHI
-		if((flagSetMenu[0] == true) && (flagSetMenu[1] == true) && (flagSetMenu[2] == true) && (flagSetMenu[3] == true)){
+		if((flagSetMenu[0] == true) && (flagSetMenu[1] == true) && (flagSetMenu[2] == true) && (flagSetMenu[3] == true) && (flagSetMenu[4] == true)){
 			LCD_Clear();
-			sprintf(buff, " SETTING SUCCESS => %d || %d || %d || %d", flagSetMenu[0],flagSetMenu[1],flagSetMenu[2],flagSetMenu[3]);
+			sprintf(buff, " SETTING SUCCESS => %d || %d || %d || %d || %d", flagSetMenu[0],flagSetMenu[1],flagSetMenu[2],flagSetMenu[3], flagSetMenu[4]);
 			LCD_Putsxy(0,0, buff);
 			flagSystemSIP = true;
 			HAL_Delay(3000);
