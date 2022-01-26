@@ -43,6 +43,7 @@ extern "C" {
 /* Exported constants --------------------------------------------------------*/
 /* USER CODE BEGIN EC */
 extern uint32_t adcBuffer[16];
+extern UART_HandleTypeDef huart6;
 /* USER CODE END EC */
 
 /* Exported macro ------------------------------------------------------------*/

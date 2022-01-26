@@ -5,14 +5,22 @@
 
 /*Variabel Global*/
 #ifndef Global_Variable
+/* GUI DATA	*/
 extern unsigned int timerCount;
 extern int count; 
 extern bool flagSucces;
 extern bool flag;
 extern int selectedSensingMode;
 extern unsigned int valueSetInterval;
+extern uint8_t hour;
+extern uint8_t minute;
+extern uint8_t second;
+extern uint8_t day;
+extern uint8_t month;
+extern uint8_t year;
 /* SENSOR GLOBAL VARIABLE */
 extern float currentSegment[16];
+extern uint8_t dataSeg[16];
 /* COMMUNICATION GLOBAL VARIABLE */
 extern char tx[100];
 extern bool flagRx;
@@ -71,6 +79,7 @@ int menuSensingMode(void);
 int menuScanSensor(void);
 int menuSetThreshold(void);
 int menuSetNameZone(void);
+int menuSetDateTime(void);
 int selectMenu(void);
 /* IO */
 extern void buzzerOn(int delay);
@@ -89,6 +98,8 @@ extern void checkSortAndOpenCircuit(void);
 extern void checkOverCurrentSensor(void);
 /* COMMUNICATION */
 extern void parsingDataF1(void);
+extern void sendDateTime(void);
+extern void sendDataSegment(void);
 #endif
 
 
