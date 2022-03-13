@@ -10,14 +10,14 @@ void parsingDataF1(void);
 void sendDateTime(void);
 void sendDataSegment(void);
 /* VARIABLE */
-char tx[100];
+char tx[128];
 //uint8_t rx_buff;
 //uint16_t i;
 //char Rx[50], tmp2[50];
 bool flagRx = false;
-char dateTime[100];
-char dataF1[100];
-char tampungData[100];
+char dateTime[128];
+char dataF1[128];
+char tampungData[128];
 bool flag1, flag2;
 
 void parsingDataF1(void){
@@ -50,28 +50,33 @@ void parsingDataF1(void){
 	}
 	memset(tampungData, 0, sizeof(tampungData));
 	flagRx = false;
+	char bufff [128];
+	
+//	sprintf(bufff, "TIME : %s | F1: %s \r\n",dateTime, dataF1);
+//	HAL_UART_Transmit(&huart6,(uint8_t *) bufff, strlen(bufff), 100);
 }
 
 void sendDateTime(void){
 	char bufferDateTime [100];
-	
-	sprintf(bufferDateTime, "%d,%d,%d,%d,%d,%d,",hour,minute,second,day,month,year);
-	
-	for(int i = 0; i < 20; i++){
-		HAL_UART_Transmit(&huart6,(uint8_t *) bufferDateTime, strlen(bufferDateTime), 100);
-		HAL_Delay(200);
-	}	
+//	int hour = 12;
+//	int minute = 11;
+//	int second = 30;
+//	int day = 23;
+//	int month = 2;
+//	int year = 2022;
+	for(int i = 0; i < 3; i++){
+			sprintf(bufferDateTime, "%d,%d,%d,%d,%d,%d,\r\n",hour,minute,second,day,month,year);
+			HAL_UART_Transmit(&huart1,(uint8_t *) bufferDateTime, strlen(bufferDateTime), 100);
+			HAL_Delay(200);
+	}
 }
 
 void sendDataSegment(void){
 	char bufferData [100];
-	
-	sprintf(bufferData, "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d", 
+
+	sprintf(bufferData, "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\r\n", 
 	dataSeg[0], dataSeg[1], dataSeg[2], dataSeg[3],dataSeg[4],dataSeg[5], dataSeg[6], dataSeg[7], 
 	dataSeg[8],dataSeg[9],dataSeg[10], dataSeg[11], dataSeg[12], dataSeg[13],dataSeg[14],dataSeg[15]);
 	
-		for(int i = 0; i < 20; i++){
-			HAL_UART_Transmit(&huart6,(uint8_t *) bufferData, strlen(bufferData), 100);
-			HAL_Delay(200);
-		}
+	HAL_UART_Transmit(&huart1,(uint8_t *) bufferData, strlen(bufferData), 100);
 }
