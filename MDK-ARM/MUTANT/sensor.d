@@ -28,8 +28,6 @@ mutant\sensor.o: C:/Users/Rizky Zullfahmy/STM32Cube/Repository/STM32Cube_FW_F4_V
 mutant\sensor.o: C:/Users/Rizky Zullfahmy/STM32Cube/Repository/STM32Cube_FW_F4_V1.26.2/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_flash.h
 mutant\sensor.o: C:/Users/Rizky Zullfahmy/STM32Cube/Repository/STM32Cube_FW_F4_V1.26.2/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_flash_ex.h
 mutant\sensor.o: C:/Users/Rizky Zullfahmy/STM32Cube/Repository/STM32Cube_FW_F4_V1.26.2/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_flash_ramfunc.h
-mutant\sensor.o: C:/Users/Rizky Zullfahmy/STM32Cube/Repository/STM32Cube_FW_F4_V1.26.2/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_i2c.h
-mutant\sensor.o: C:/Users/Rizky Zullfahmy/STM32Cube/Repository/STM32Cube_FW_F4_V1.26.2/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_i2c_ex.h
 mutant\sensor.o: C:/Users/Rizky Zullfahmy/STM32Cube/Repository/STM32Cube_FW_F4_V1.26.2/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr.h
 mutant\sensor.o: C:/Users/Rizky Zullfahmy/STM32Cube/Repository/STM32Cube_FW_F4_V1.26.2/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr_ex.h
 mutant\sensor.o: C:/Users/Rizky Zullfahmy/STM32Cube/Repository/STM32Cube_FW_F4_V1.26.2/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h
@@ -39,3 +37,4 @@ mutant\sensor.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdbool.h
 mutant\sensor.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
 mutant\sensor.o: .\RTE\_MUTANT\LCD_Lib.h
 mutant\sensor.o: .\RTE\_MUTANT\DWT_Delay.h
+mutant\sensor.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\String.h
