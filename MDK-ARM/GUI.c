@@ -21,11 +21,12 @@ int menuSetThreshold(void);
 int menuSetNameZone(void);
 int selectMenu(void);
 int menuSetDateTime(void);
+void inMaintananceFunction(void);
 int dateTimeSet(int timeMode);
 /* Variable */
 char buff[40];
 bool lastb = 0;
-bool sensor;
+bool flagSensorActive[17] = {false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false};
 int charSize = 0;
 int charIndex = 0;
 unsigned int secdown = 60;
@@ -74,7 +75,7 @@ int buttonPress(GPIO_TypeDef *port, uint16_t pin, int delay){
 	//HAL_I2C_Mem_Write();
 	bool button = BUTTON_Read(port, pin);
 	if(!button){
-		HAL_Delay(delay);
+		DWT_Delayms(delay);
 		if(!button){
 			//LCD_Putsxy(0,0,"Stable Key");
 			return 0;
@@ -91,22 +92,35 @@ void interface(void){
 	testFunction();
 	silentFunction();
 	muteFunction();
-	resetFunction();
+	inMaintananceFunction();
+	//resetFunction();
 }
-
+void inMaintananceFunction(void){
+	if(!buttonPress(BUTTON_PROG_PORT, BUTTON_PROG_PIN, 500)){
+		while(1){
+			LCD_Clear();
+			LCD_Putsxy(0,0, "TROUBLE 3 MAINTANANCE");
+			LCD_Putsxy(0, 1, dateTime);
+			if(!buttonPress(BUTTON_RESET_PORT, BUTTON_RESET_PIN, 500)){
+				break;
+			}
+		}
+	}
+}
 void testFunction(void){ //DONE
 	if(!buttonPress(BUTTON_TEST_PORT, BUTTON_TEST_PIN, 500)){
 		LCD_Clear();
 		while(1){
 			// bool alarm = 1;
-			LCD_Putsxy(0,0, "           Alarm ON!");
+			LCD_Putsxy(0,0, "           TEST FUNCTION!");
 			/*NYALAKKAN LAMPU ALARM*/
 			relayOn(0xFFFF);
 			buzzerOn(1000);
 			//buzzerOff(1000);
 			if(!buttonPress(BUTTON_RESET_PORT, BUTTON_RESET_PIN, 500)){
-				HAL_Delay(100);
-				LCD_Putsxy(0,0, "Alarm OFF!");
+				LCD_Clear();
+				DWT_Delayms(100);
+				LCD_Putsxy(0,0, "RESET FUNCTION");
 				buzzerOff(0);
 				relayOff(18);
 				LCD_Clear();
@@ -118,69 +132,64 @@ void testFunction(void){ //DONE
 
 void silentFunction(void){
 	//while(sensor == 1){
-	if(sensor == 0){
+	if(flagSensorActive[0] || flagSensorActive[1] || flagSensorActive[2] || flagSensorActive[3] || flagSensorActive[4] || flagSensorActive[5] || flagSensorActive[6] || flagSensorActive[7] || flagSensorActive[8] || flagSensorActive[9] || flagSensorActive[10] || flagSensorActive[11] || flagSensorActive[12] || flagSensorActive[13] || flagSensorActive[14] || flagSensorActive[15] || flagSensorActive[16]){
 		if(!buttonPress(BUTTON_SILENT_PORT, BUTTON_SILENT_PIN, 500)){
 			LCD_Clear();
 			LCD_BlinkOff();
 			LCD_Putsxy(0,0, "Buzzer Off");
-			buzzerOff(1000);
-			//LCD_Putsxy(0,0, "Alarm On");
-			//count+= 1;
-			//secdown = secdown - count;
-			//DWT_Delayms(6000);
+			relayOff(17);				// NONAKTIF ALL RELAY
+			buzzerOff(100); 		// NONAKTIFKAN BUZZER
+			DWT_Delayms(60000); // SILENT BUZZER 1 MINUTE 
 			LCD_BlinkOff();
 			LCD_Clear();
-			//LCD_Putsxy(0,0,"Alarm OFF");
-			//DWT_Delayms(5000);
-			//LCD_Clear();
-			/* Alarm */
-			/* Alarm on Selama ++ */
-			/* Sesudah 1000 detik alarm mati */
+			// CHECK RELAY YANG SEBELUMNYA AKTIF => UNTUK AKTIF LAGI
+			for(int i = 0; i <=16; i++){
+				if(flagSensorActive[i]){
+					relayOn(i);
+				}
+			}
 		}
 	}
 }
 
 void resetFunction(void){
 	//buttonPress(BUTTON_RESET_PORT, BUTTON_RESET_PIN);
+	/*
 	if(sensor == 0 && !buttonPress(BUTTON_RESET_PORT, BUTTON_RESET_PIN, 500)){
 		LCD_Clear();
 		LCD_BlinkOff();
 		LCD_Putsxy(0,0,"           RESET SYSTEM");
-		HAL_Delay(2000);
+		DWT_Delayms(2000);
 		LCD_BlinkOff();
 		LCD_Putsxy(0,0,"          RESTART SYSTEM");
-		HAL_Delay(5000);
-		/*Off all Alarm*/
+		DWT_Delayms(5000);
+		//Off all Alarm
 		NVIC_SystemReset();
 	}
 	else if(sensor == 1 && !buttonPress(BUTTON_RESET_PORT, BUTTON_RESET_PIN, 500)){
 		LCD_Clear();
 		LCD_Putsxy(0,0, "       SYSTEM CANNOT RESET");
-		/* Cannot off Alarm */
+		//Cannot off Alarm 
 	}
+	*/
 	
 }
 
 void muteFunction(void){
-	//if(sensor == 1){
-	if(sensor == 0){	
+	if(flagSensorActive[0] || flagSensorActive[1] || flagSensorActive[2] || flagSensorActive[3] || flagSensorActive[4] || flagSensorActive[5] || flagSensorActive[6] || flagSensorActive[7] || flagSensorActive[8] || flagSensorActive[9] || flagSensorActive[10] || flagSensorActive[11] || flagSensorActive[12] || flagSensorActive[13] || flagSensorActive[14] || flagSensorActive[15] || flagSensorActive[16]){
 		if(!buttonPress(BUTTON_MUTE_PORT, BUTTON_MUTE_PIN, 500)){
+			relayOff(17);
 			LCD_Clear();
 			/* Buzzer OFF */
 			while(1){/*Buzzer OFF*/
-				LCD_Putsxy(0,0,"BUZZER OFF");
+				LCD_Putsxy(0,0,"MUTE");
 				if(!buttonPress(BUTTON_RESET_PORT, BUTTON_RESET_PIN, 500)){
 					LCD_Clear();
 					break;}
 			}
 		}
-		else{
-			
-		}
 	}
 }
-
-
 void troubleFunction(void){
 	/*Jika Buttry Tidak Connect */
 	LCD_Putsxy(0,0, "Battery Disconnect");
@@ -229,7 +238,7 @@ void zone(int zoneIndex, char temp[]){
 			LCD_CursorSet(cx,0);
 			//LCD_BlinkOn();
 			LCD_Puts(1, ptrAlpha);
-			HAL_Delay(200);
+			DWT_Delayms(200);
 		}
 		else if(!buttonPress(BUTTON_DOWN_PORT, BUTTON_DOWN_PIN, 500)){
 			charIndex--;
@@ -243,7 +252,7 @@ void zone(int zoneIndex, char temp[]){
 			LCD_CursorSet(cx, 0);
 			//LCD_BlinkOn();
 			LCD_Puts(1, ptrAlpha);
-			HAL_Delay(200);
+			DWT_Delayms(200);
 		}
 					
 		if(!buttonPress(BUTTON_OK_PORT, BUTTON_OK_PIN, 500)){
@@ -253,7 +262,7 @@ void zone(int zoneIndex, char temp[]){
 			LCD_Puts(1, ptrAlpha);
 			charIndex = 0;			
 			cx++;
-			HAL_Delay(200);
+			DWT_Delayms(200);
 		}
 					
 		if(!buttonPress(BUTTON_RIGHT_PORT, BUTTON_RIGHT_PIN, 500)){
@@ -263,7 +272,7 @@ void zone(int zoneIndex, char temp[]){
 				sprintf(buffer, "       SAVE NAME ZONE %d SUCCESS", zoneIndex);
 				LCD_Putsxy(0,0, buffer);
 				LCD_Putsxy(0,1, temp);
-				HAL_Delay(5000);
+				DWT_Delayms(5000);
 				countBack = 0;
 				LCD_Clear();
 				break;
@@ -489,7 +498,7 @@ int menuScanSensor(void){
 			LCD_Clear();
 			LCD_Putsxy(0,0, "Sensor scan is processed");
 			LCD_Putsxy(0,1, "Please wait...");
-			HAL_Delay(2000);
+			DWT_Delayms(2000);
 			LCD_Clear();
 			flagScanSensor = scanSensor();
 			if(flagScanSensor == true){		// APABILA SCAN SUKSES
@@ -506,15 +515,31 @@ int menuScanSensor(void){
 }
 int dateTimeSet(int timeMode){
 	char bufferr[30];
-	unsigned int value = 0;
+	int value = 0;
 	if(timeMode == 6)value = 2000;
 	LCD_Clear();
 	LCD_Putsxy(0,0,"MENU SET DATE TIME");
 	while(1){
-		if(!buttonPress(BUTTON_DOWN_PORT, BUTTON_DOWN_PIN, 100)){			// DOWN
+		if(!buttonPress(BUTTON_UP_PORT, BUTTON_UP_PIN, 100)){			// DOWN => INCREMENT
 			value++;
-		}else if(!buttonPress(BUTTON_UP_PORT, BUTTON_DOWN_PIN, 100)){		// UP
+			LCD_Clear();
+			LCD_Putsxy(0,0,"MENU SET DATE TIME");
+			if(timeMode == 1){if(value >=24) {value = 24;}
+			}else if(timeMode == 2){if(value >=60) {value = 60;}
+			}else if(timeMode == 3){if(value >=60) {value = 60;}
+			}else if(timeMode == 4){if(value>=31) {value = 31;}
+			}else if(timeMode == 5){if(value>=12) {value = 12;}
+			}else if(timeMode == 6){if(value>=2100) {value = 2100;}}
+		}else if(!buttonPress(BUTTON_DOWN_PORT, BUTTON_DOWN_PIN, 100)){		// UP		=> DECREMENT
 			value--;
+			LCD_Clear();
+			LCD_Putsxy(0,0,"MENU SET DATE TIME");
+			if(timeMode == 1){if(value <= 0) {value = 0;}
+			}else if(timeMode == 2){if(value <= 0) {value = 0;}
+			}else if(timeMode == 3){if(value <= 0) {value = 0;}
+			}else if(timeMode == 4){if(value <= 0) {value = 0;}
+			}else if(timeMode == 5){if(value <= 0) {value = 0;}
+			}else if(timeMode == 6){if(value <= 2000){value = 2000;}}
 		}else if(!buttonPress(BUTTON_LEFT_PORT, BUTTON_LEFT_PIN, 500)){		// CANCEL
 			value = 0;
 			//valueSetInterval = 0;
@@ -537,7 +562,7 @@ int dateTimeSet(int timeMode){
 					sprintf(bufferr, "Set Year value %d saved", value);
 				}
 				LCD_Putsxy(0,1,bufferr);
-				HAL_Delay(2000);
+				DWT_Delayms(2000);
 				LCD_Clear();
 				break;
 			}else{
@@ -561,25 +586,46 @@ int dateTimeSet(int timeMode){
 					LCD_Putsxy(0,0,"Save year value failed");
 					LCD_Putsxy(0,1,"Because year value is 0");
 				}
-				HAL_Delay(2000);
+				DWT_Delayms(2000);
 				LCD_Clear();
 			}
 		}
+		if(timeMode == 1){
+			  sprintf(bufferr, "Hour : %d", value);
+		}else if(timeMode == 2){
+				sprintf(bufferr, "Minute : %d", value);
+		}else if(timeMode == 3){
+				sprintf(bufferr, "Second : %d", value);
+		}else if(timeMode == 4){
+			  sprintf(bufferr, "Day : %d", value);	
+		}else if(timeMode == 5) {
+		    sprintf(bufferr, "Month : %d", value);
+		}else if(timeMode == 6) {
+		   sprintf(bufferr, "Year : %d", value);	
+		}
+		LCD_Putsxy(0,1,bufferr);
 	}
 	
 	return value;
 }
 int menuSetThreshold(void){
 	char bufferr[30];
-	unsigned int value = 0;
+	int value = 0;
 	bool flagSetThreshold = false;
 	LCD_Clear();
 	LCD_Putsxy(0,0,"MENU SET THRESHOLD VALUE");
 	while(1){
-		if(!buttonPress(BUTTON_DOWN_PORT, BUTTON_DOWN_PIN, 100)){		// INCREMENT
+		if(!buttonPress(BUTTON_UP_PORT, BUTTON_UP_PIN, 100)){		// INCREMENT
 			value++;
-		}else if(!buttonPress(BUTTON_UP_PORT, BUTTON_UP_PIN, 100)){	// DECREMENT
+			LCD_Clear();
+			LCD_Putsxy(0,0,"MENU SET THRESHOLD VALUE");
+		}else if(!buttonPress(BUTTON_DOWN_PORT, BUTTON_DOWN_PIN, 100)){	// DECREMENT
 			value--;
+			LCD_Clear();
+			LCD_Putsxy(0,0,"MENU SET THRESHOLD VALUE");
+			if(value <=0){
+				value = 0;
+			}
 		}else if(!buttonPress(BUTTON_LEFT_PORT, BUTTON_LEFT_PIN, 500)){	// CANCEL
 			flagSetThreshold = false;
 			valueSetInterval = 0;
@@ -591,7 +637,7 @@ int menuSetThreshold(void){
 				LCD_Clear();
 				sprintf(bufferr, "Threshold value %d saved", value);
 				LCD_Putsxy(0,1,bufferr);
-				HAL_Delay(2000);
+				DWT_Delayms(2000);
 				LCD_Clear();
 				break;
 			}else{
@@ -599,7 +645,7 @@ int menuSetThreshold(void){
 				LCD_Clear();
 				LCD_Putsxy(0,0,"Save threshold value failed");
 				LCD_Putsxy(0,1,"Because threshold value is 0");
-				HAL_Delay(2000);
+				DWT_Delayms(2000);
 				LCD_Clear();
 			}
 		}
@@ -635,8 +681,8 @@ int menuSetDateTime(void){
 		
 		// CHECK APABILA SEMUA TERISI
 		if(hour > 0 && minute > 0 && second > 0 && day > 0 && month > 0 && year > 0){
-			break;
 			flagDateTime = true;
+			break;
 		}			
 	}
 	return flagDateTime;
@@ -653,15 +699,15 @@ int selectMenu(void){
 	LCD_Clear();
 	LCD_Putsxy(0,0,"MENU OPTIONS");
 	LCD_Putsxy(0,1,"PRESS UP & DOWN TO CHOOSE");
-	HAL_Delay(3000);
+	DWT_Delayms(2000);
 	LCD_Clear();
 	while(1){
 			interface();
 			LCD_Putsxy(0,0,"============> MENU OPTIONS <============");
-		if(!buttonPress(BUTTON_DOWN_PORT, BUTTON_DOWN_PIN, 500)){
+		if(!buttonPress(BUTTON_UP_PORT, BUTTON_UP_PIN, 500)){
 			count--;
 			if(count < 0) count = 0;
-		}else if(!buttonPress(BUTTON_UP_PORT, BUTTON_UP_PIN, 500)){
+		}else if(!buttonPress(BUTTON_DOWN_PORT, BUTTON_DOWN_PIN, 500)){
 			count++;
 			if(count > 3) count = 4;
 		}else if(!buttonPress(BUTTON_OK_PORT, BUTTON_OK_PIN, 500)){
@@ -692,11 +738,12 @@ int selectMenu(void){
 		
 		// CHECK APABILA SYSTEM TERPENUHI
 		if((flagSetMenu[0] == true) && (flagSetMenu[1] == true) && (flagSetMenu[2] == true) && (flagSetMenu[3] == true) && (flagSetMenu[4] == true)){
+		//if(flagSetMenu[0] == true){	
 			LCD_Clear();
 			sprintf(buff, " SETTING SUCCESS => %d || %d || %d || %d || %d", flagSetMenu[0],flagSetMenu[1],flagSetMenu[2],flagSetMenu[3], flagSetMenu[4]);
 			LCD_Putsxy(0,0, buff);
 			flagSystemSIP = true;
-			HAL_Delay(3000);
+			DWT_Delayms(2000);
 			break;
 		}			
 		
