@@ -43,6 +43,8 @@ extern "C" {
 /* Exported constants --------------------------------------------------------*/
 /* USER CODE BEGIN EC */
 extern uint32_t adcBuffer[16];
+extern UART_HandleTypeDef huart6;
+extern UART_HandleTypeDef huart1;
 /* USER CODE END EC */
 
 /* Exported macro ------------------------------------------------------------*/
@@ -66,12 +68,12 @@ void Error_Handler(void);
 #define RL_6_GPIO_Port GPIOE
 #define RL_7_Pin GPIO_PIN_5
 #define RL_7_GPIO_Port GPIOE
-#define RL_4_Pin GPIO_PIN_6
-#define RL_4_GPIO_Port GPIOE
+#define RL_5_Pin GPIO_PIN_13
+#define RL_5_GPIO_Port GPIOC
+#define RL_2_Pin GPIO_PIN_14
+#define RL_2_GPIO_Port GPIOC
 #define RL_3_Pin GPIO_PIN_15
 #define RL_3_GPIO_Port GPIOC
-#define RL_0_Pin GPIO_PIN_0
-#define RL_0_GPIO_Port GPIOH
 #define LIM0_Pin GPIO_PIN_2
 #define LIM0_GPIO_Port GPIOB
 #define LIM1_Pin GPIO_PIN_7
@@ -92,6 +94,8 @@ void Error_Handler(void);
 #define LIM8_GPIO_Port GPIOE
 #define LIM9_Pin GPIO_PIN_15
 #define LIM9_GPIO_Port GPIOE
+#define RL_4_Pin GPIO_PIN_10
+#define RL_4_GPIO_Port GPIOB
 #define LIM10_Pin GPIO_PIN_12
 #define LIM10_GPIO_Port GPIOB
 #define LIM11_Pin GPIO_PIN_13
@@ -120,12 +124,10 @@ void Error_Handler(void);
 #define BT_10_GPIO_Port GPIOC
 #define BUZZER_Pin GPIO_PIN_8
 #define BUZZER_GPIO_Port GPIOA
-#define RL_5_Pin GPIO_PIN_15
-#define RL_5_GPIO_Port GPIOA
-#define RL_1_Pin GPIO_PIN_10
+#define RL_0_Pin GPIO_PIN_10
+#define RL_0_GPIO_Port GPIOC
+#define RL_1_Pin GPIO_PIN_11
 #define RL_1_GPIO_Port GPIOC
-#define RL_2_Pin GPIO_PIN_11
-#define RL_2_GPIO_Port GPIOC
 #define BT_9_Pin GPIO_PIN_12
 #define BT_9_GPIO_Port GPIOC
 #define BT_7_Pin GPIO_PIN_1

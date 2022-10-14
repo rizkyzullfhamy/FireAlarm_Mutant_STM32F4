@@ -1,0 +1,15 @@
+*.o
+*.crf
+*.o
+*.crf
+*.hex
+*.htm
+*.map
+*.sct
+*.dep
+*.Bak
+*.uvoptx
+*.uvprojx
+*.uvguix
+*.dbgconf
+*.axf

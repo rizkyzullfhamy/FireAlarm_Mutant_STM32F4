@@ -28,8 +28,6 @@ mutant\dwt_delay.o: C:/Users/Rizky Zullfahmy/STM32Cube/Repository/STM32Cube_FW_F
 mutant\dwt_delay.o: C:/Users/Rizky Zullfahmy/STM32Cube/Repository/STM32Cube_FW_F4_V1.26.2/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_flash.h
 mutant\dwt_delay.o: C:/Users/Rizky Zullfahmy/STM32Cube/Repository/STM32Cube_FW_F4_V1.26.2/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_flash_ex.h
 mutant\dwt_delay.o: C:/Users/Rizky Zullfahmy/STM32Cube/Repository/STM32Cube_FW_F4_V1.26.2/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_flash_ramfunc.h
-mutant\dwt_delay.o: C:/Users/Rizky Zullfahmy/STM32Cube/Repository/STM32Cube_FW_F4_V1.26.2/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_i2c.h
-mutant\dwt_delay.o: C:/Users/Rizky Zullfahmy/STM32Cube/Repository/STM32Cube_FW_F4_V1.26.2/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_i2c_ex.h
 mutant\dwt_delay.o: C:/Users/Rizky Zullfahmy/STM32Cube/Repository/STM32Cube_FW_F4_V1.26.2/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr.h
 mutant\dwt_delay.o: C:/Users/Rizky Zullfahmy/STM32Cube/Repository/STM32Cube_FW_F4_V1.26.2/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr_ex.h
 mutant\dwt_delay.o: C:/Users/Rizky Zullfahmy/STM32Cube/Repository/STM32Cube_FW_F4_V1.26.2/Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h

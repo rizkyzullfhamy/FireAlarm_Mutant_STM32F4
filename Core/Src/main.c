@@ -19,23 +19,24 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+
+/* Private includes ----------------------------------------------------------*/
+/* USER CODE BEGIN Includes */
 #include "stdbool.h"
 #include "stdio.h"
 #include "LCD_Lib.h"
 #include "Header.h"
 #include "String.h"
-
-/* Private includes ----------------------------------------------------------*/
-/* USER CODE BEGIN Includes */
+#include "DWT_Delay.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define USART_BUF_SIZE 128
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -46,18 +47,23 @@
 ADC_HandleTypeDef hadc1;
 DMA_HandleTypeDef hdma_adc1;
 
-I2C_HandleTypeDef hi2c2;
-
 UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart6;
+DMA_HandleTypeDef hdma_usart1_rx;
+DMA_HandleTypeDef hdma_usart6_rx;
 
 /* USER CODE BEGIN PV */
+uint8_t USART_pBuffer[USART_BUF_SIZE * 2];
+uint8_t stringBuffer[USART_BUF_SIZE];
+bool USART_status = false;
+char bufferr[128];
+uint32_t adcBuffer[16];
+bool systemSetOK = false;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
-static void MX_I2C2_Init(void);
 static void MX_USART1_UART_Init(void);
 static void MX_USART6_UART_Init(void);
 static void MX_DMA_Init(void);
@@ -73,15 +79,8 @@ static void MX_ADC1_Init(void);
 #include "LCD_Lib.h"
 #include "Header.h"
 #include "String.h"
+#include "DWT_Delay.h"
 */
-char bufferr[100];
-uint32_t adcBuffer[16];
-bool systemSetOK = false;
-//==========KOMUNIKASI==============//
-uint8_t rx_buff;
-uint16_t i;
-char Rx[50], tmp2[50];
-//==================================//
 /* USER CODE END 0 */
 
 /**
@@ -112,20 +111,22 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_I2C2_Init();
+	MX_DMA_Init();
   MX_USART1_UART_Init();
   MX_USART6_UART_Init();
-  MX_DMA_Init();
   MX_ADC1_Init();
   /* USER CODE BEGIN 2 */
 	HAL_ADC_Start_DMA(&hadc1, adcBuffer, 16);
-	__HAL_UART_ENABLE_IT(&huart6, UART_IT_RXNE);
+	HAL_UARTEx_ReceiveToIdle_DMA(&huart1, USART_pBuffer, USART_BUF_SIZE);
+	__HAL_DMA_DISABLE_IT(&hdma_usart1_rx, DMA_IT_HT);
+//	__HAL_UART_ENABLE_IT(&huart6, UART_IT_RXNE);
 	LCD_Init(40,2);
 	LCD_CursorSet(0,0);
-	LCD_Putsxy(0, 0,"====> MUTANT <====");
+	LCD_Putsxy(0, 0,"====> MUTANT 2.0 <====");
 	LCD_Putsxy(0, 1,"==> FIRE ALARM <==");
-	HAL_Delay(1000);
+	DWT_Delayms(1000);
 	LCD_Clear();
+	int increm = 0;
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -133,9 +134,6 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-		
-		
-		// Program Main utama Terbaru Namun Belum integrasi dengan Parsing data UART
 		if(systemSetOK == false){
 			while(1){
 				if(systemSetOK == false){
@@ -145,40 +143,58 @@ int main(void)
 					sprintf(bufferr, "MODE %d || INT %d", selectedSensingMode, valueSetInterval);
 					LCD_Putsxy(0,0, "SYSTEM RUNNING");
 					LCD_Putsxy(0,1, bufferr);
-					HAL_Delay(2000);
+					sendDateTime();
+					if(flagRx == true){parsingDataF1();}					//Parsing DATA
+					DWT_Delayms(2000);
 					LCD_Clear();
 					break;
 				}
 			}
 		}else{
-		
 		// JALANKAN PROGRAM RUNNING SYSTEM IN HERE
-		if(selectedSensingMode == 1){
-			LCD_Putsxy(18,0, "MUTANT");
-			LCD_Putsxy(12,1, "30 NOV 2021, 00.10 WIB");
-			modeSingleWire();
-			checkSortAndOpenCircuit();
-			checkOverCurrentSensor();
-		}else if(selectedSensingMode == 2){
-			LCD_Putsxy(18,0, "MUTANT");
-			LCD_Putsxy(12,1, "30 NOV 2021, 00.10 WIB");
-			modeCrossWire();
-			checkSortAndOpenCircuit();
-			checkOverCurrentSensor();
+			if(selectedSensingMode == 1){
+				LCD_Putsxy(14,0, "MUTANT 2.0");
+				LCD_Putsxy(10, 1, dateTime);
+				if(flagRx == true){parsingDataF1();}					//Parsing DATA
+				modeSingleWire();
+				//checkSortAndOpenCircuit();
+				//checkSupply();
+			}else if(selectedSensingMode == 2){
+				LCD_Putsxy(14,0, "MUTANT 2.0");
+				LCD_Putsxy(10, 1, dateTime);
+				if(flagRx == true){parsingDataF1();}					//Parsing DATA
+				modeCrossWire();
+				//checkSortAndOpenCircuit();
+				//checkSupply();
+			}
 		}
-	} 
+		 //UNTUK TEST UART
+	/*	 
+		if(USART_status == false){
+			sendDateTime();
+			USART_status = true;
+		}
 		
-		// UNTUK TEST UART F1 TO F4 MAUPUN SEBALIKNYA
-		/*
-				sprintf(tx, "%s\r\n", tmp2);
-				HAL_UART_Transmit(&huart6,(uint8_t *) tx, strlen(tx), 100);
-				sprintf(bufferr, "Data Waktu : %s | Data F1 : %s\r\n", dateTime, dataF1);
-				HAL_UART_Transmit(&huart6,(uint8_t *) bufferr, strlen(bufferr), 100);
-				flagRx == true ? parsingDataF1() : HAL_Delay(500);
-		
-				HAL_Delay(1000);
+		if(USART_status == true){
+			if(increm >= 0 && increm <= 100){
+				sendDataSegment();
+			}else if(increm > 100 && increm <= 200){
+				sendDataSegment2();
+			}else if(increm > 200 && increm <= 300){
+				sendDataSegment3();
+			} else if(increm > 300){
+				increm = 0;
+			}
+			increm++;
+			HAL_Delay(1000);
+		}
 		*/
-		
+//		  if(flagRx == true){
+//				sprintf(bufferr, "Received :  %s \r\n", stringBuffer);
+//				HAL_UART_Transmit(&huart6,(uint8_t *) bufferr, strlen(bufferr), 100);
+	
+//				parsingDataF1();					//Parsing stringBuffer
+//	  }
 		
     /* USER CODE BEGIN 3 */
   }
@@ -401,40 +417,6 @@ static void MX_ADC1_Init(void)
 }
 
 /**
-  * @brief I2C2 Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_I2C2_Init(void)
-{
-
-  /* USER CODE BEGIN I2C2_Init 0 */
-
-  /* USER CODE END I2C2_Init 0 */
-
-  /* USER CODE BEGIN I2C2_Init 1 */
-
-  /* USER CODE END I2C2_Init 1 */
-  hi2c2.Instance = I2C2;
-  hi2c2.Init.ClockSpeed = 100000;
-  hi2c2.Init.DutyCycle = I2C_DUTYCYCLE_2;
-  hi2c2.Init.OwnAddress1 = 0;
-  hi2c2.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
-  hi2c2.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
-  hi2c2.Init.OwnAddress2 = 0;
-  hi2c2.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
-  hi2c2.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
-  if (HAL_I2C_Init(&hi2c2) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN I2C2_Init 2 */
-
-  /* USER CODE END I2C2_Init 2 */
-
-}
-
-/**
   * @brief USART1 Initialization Function
   * @param None
   * @retval None
@@ -513,6 +495,12 @@ static void MX_DMA_Init(void)
   /* DMA2_Stream0_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA2_Stream0_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA2_Stream0_IRQn);
+  /* DMA2_Stream1_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA2_Stream1_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA2_Stream1_IRQn);
+  /* DMA2_Stream5_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA2_Stream5_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA2_Stream5_IRQn);
 
 }
 
@@ -528,7 +516,6 @@ static void MX_GPIO_Init(void)
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOE_CLK_ENABLE();
   __HAL_RCC_GPIOC_CLK_ENABLE();
-  __HAL_RCC_GPIOH_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
   __HAL_RCC_GPIOD_CLK_ENABLE();
@@ -540,22 +527,20 @@ static void MX_GPIO_Init(void)
                           |LIM9_Pin|RL_10_Pin|RL_11_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOC, RL_3_Pin|RL_1_Pin|RL_2_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOC, RL_5_Pin|RL_2_Pin|RL_3_Pin|RL_0_Pin
+                          |RL_1_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(RL_0_GPIO_Port, RL_0_Pin, GPIO_PIN_RESET);
-
-  /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, LIM0_Pin|LIM10_Pin|LIM11_Pin|LIM12_Pin
-                          |LIM13_Pin|RL_16_Pin|RL_14_Pin|RL_15_Pin
-                          |RL_12_Pin|RL_13_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, LIM0_Pin|RL_4_Pin|LIM10_Pin|LIM11_Pin
+                          |LIM12_Pin|LIM13_Pin|RL_16_Pin|RL_14_Pin
+                          |RL_15_Pin|RL_12_Pin|RL_13_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOD, LIM14_Pin|LIM15_Pin|LCD_RS_Pin|LCD_EN_Pin
                           |LCD_B4_Pin|LCD_B5_Pin|LCD_B6_Pin|LCD_B7_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, BUZZER_Pin|RL_5_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(BUZZER_GPIO_Port, BUZZER_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pins : RL_8_Pin RL_9_Pin RL_6_Pin RL_7_Pin
                            LIM1_Pin LIM2_Pin LIM3_Pin LIM4_Pin
@@ -570,35 +555,32 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : RL_4_Pin */
-  GPIO_InitStruct.Pin = RL_4_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(RL_4_GPIO_Port, &GPIO_InitStruct);
-
-  /*Configure GPIO pins : RL_3_Pin RL_1_Pin RL_2_Pin */
-  GPIO_InitStruct.Pin = RL_3_Pin|RL_1_Pin|RL_2_Pin;
+  /*Configure GPIO pins : RL_5_Pin RL_2_Pin RL_3_Pin RL_0_Pin
+                           RL_1_Pin */
+  GPIO_InitStruct.Pin = RL_5_Pin|RL_2_Pin|RL_3_Pin|RL_0_Pin
+                          |RL_1_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : RL_0_Pin */
-  GPIO_InitStruct.Pin = RL_0_Pin;
+  /*Configure GPIO pins : LIM0_Pin RL_4_Pin LIM10_Pin LIM11_Pin
+                           LIM12_Pin LIM13_Pin RL_16_Pin RL_14_Pin
+                           RL_15_Pin RL_12_Pin RL_13_Pin */
+  GPIO_InitStruct.Pin = LIM0_Pin|RL_4_Pin|LIM10_Pin|LIM11_Pin
+                          |LIM12_Pin|LIM13_Pin|RL_16_Pin|RL_14_Pin
+                          |RL_15_Pin|RL_12_Pin|RL_13_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(RL_0_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : LIM0_Pin LIM10_Pin LIM11_Pin LIM12_Pin
-                           LIM13_Pin RL_16_Pin RL_14_Pin RL_15_Pin
-                           RL_12_Pin RL_13_Pin */
-  GPIO_InitStruct.Pin = LIM0_Pin|LIM10_Pin|LIM11_Pin|LIM12_Pin
-                          |LIM13_Pin|RL_16_Pin|RL_14_Pin|RL_15_Pin
-                          |RL_12_Pin|RL_13_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  /*Configure GPIO pin : PB11 */
+  GPIO_InitStruct.Pin = GPIO_PIN_11;
+  GPIO_InitStruct.Mode = GPIO_MODE_AF_OD;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+  GPIO_InitStruct.Alternate = GPIO_AF4_I2C2;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /*Configure GPIO pins : LIM14_Pin LIM15_Pin LCD_RS_Pin LCD_EN_Pin
@@ -616,12 +598,12 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : BUZZER_Pin RL_5_Pin */
-  GPIO_InitStruct.Pin = BUZZER_Pin|RL_5_Pin;
+  /*Configure GPIO pin : BUZZER_Pin */
+  GPIO_InitStruct.Pin = BUZZER_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+  HAL_GPIO_Init(BUZZER_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : BT_7_Pin BT_8_Pin BT_5_Pin BT_6_Pin
                            BT_3_Pin BT_4_Pin BT_1_Pin */
@@ -640,7 +622,22 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
+{
+	if(huart->Instance == USART1){
+		memcpy(stringBuffer, USART_pBuffer, Size);
+		memcpy(tx, stringBuffer, Size);
+		flagRx = true;		// FLAG 
+
+		HAL_UARTEx_ReceiveToIdle_DMA(&huart1, USART_pBuffer, USART_BUF_SIZE);
+		__HAL_DMA_DISABLE_IT(&hdma_usart1_rx, DMA_IT_HT);
+	}
+}
+/*
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
+	// TODO HERE RXCPT DMA
+//	$10-2-2022, 14:58 WIB|101|;				
+	UNUSED(huart);
 	switch(rx_buff)
 	{
 		case ';':
@@ -654,11 +651,13 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 			break;
 		default: Rx[i++] = rx_buff;
 	}
+	//HAL_UART_Receive_DMA(&huart1, &rx_buff, sizeof(rx_buff));
 }
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart){
 	UNUSED(huart);
 	//__NOP();
 }
+*/
 /* USER CODE END 4 */
 
 /**
