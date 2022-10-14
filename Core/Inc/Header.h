@@ -100,11 +100,14 @@ extern void modeSingleWire(void);
 extern void modeCrossWire(void);
 extern void checkSortAndOpenCircuit(void);
 extern void checkOverCurrentSensor(void);
+extern void resetLimitSensor(void);
 void checkSupply(void);
 /* COMMUNICATION */
 extern void parsingDataF1(void);
 extern void sendDateTime(void);
 extern void sendDataSegment(void);
+extern void sendDataSegment2(void);
+extern void sendDataSegment3(void);
 #endif
 
 

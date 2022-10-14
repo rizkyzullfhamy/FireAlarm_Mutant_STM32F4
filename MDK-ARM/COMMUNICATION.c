@@ -9,6 +9,8 @@
 void parsingDataF1(void);
 void sendDateTime(void);
 void sendDataSegment(void);
+void sendDataSegment2(void);
+void sendDataSegment3(void);
 /* VARIABLE */
 char tx[128];
 //uint8_t rx_buff;
@@ -50,7 +52,7 @@ void parsingDataF1(void){
 	}
 	memset(tampungData, 0, sizeof(tampungData));
 	flagRx = false;
-	char bufff [128];
+//	char bufff [128];
 	
 //	sprintf(bufff, "TIME : %s | F1: %s \r\n",dateTime, dataF1);
 //	HAL_UART_Transmit(&huart6,(uint8_t *) bufff, strlen(bufff), 100);
@@ -58,15 +60,16 @@ void parsingDataF1(void){
 
 void sendDateTime(void){
 	char bufferDateTime [100];
-//	int hour = 12;
-//	int minute = 11;
+//	int hour = 16;
+//	int minute = 2;
 //	int second = 30;
-//	int day = 23;
-//	int month = 2;
+//	int day = 3;
+//	int month = 4;
 //	int year = 2022;
-	for(int i = 0; i < 3; i++){
+	for(int i = 0; i < 2; i++){
 			sprintf(bufferDateTime, "%d,%d,%d,%d,%d,%d,\r\n",hour,minute,second,day,month,year);
-			HAL_UART_Transmit(&huart1,(uint8_t *) bufferDateTime, strlen(bufferDateTime), 100);
+			HAL_UART_Transmit(&huart1,(uint8_t *) bufferDateTime, strlen(bufferDateTime), 100);			// aktifkan apabila sudah selesai test
+//			HAL_UART_Transmit(&huart6,(uint8_t *) bufferDateTime, strlen(bufferDateTime), 100);
 			HAL_Delay(200);
 	}
 }
@@ -74,9 +77,43 @@ void sendDateTime(void){
 void sendDataSegment(void){
 	char bufferData [100];
 
-	sprintf(bufferData, "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\r\n", 
+//	dataSeg[0] = 1;
+//	dataSeg[1] = 1;
+//	dataSeg[2] = 2;
+//	dataSeg[3] = 2;
+	sprintf(bufferData, "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,\r\n", 
 	dataSeg[0], dataSeg[1], dataSeg[2], dataSeg[3],dataSeg[4],dataSeg[5], dataSeg[6], dataSeg[7], 
 	dataSeg[8],dataSeg[9],dataSeg[10], dataSeg[11], dataSeg[12], dataSeg[13],dataSeg[14],dataSeg[15]);
 	
-	HAL_UART_Transmit(&huart1,(uint8_t *) bufferData, strlen(bufferData), 100);
+	HAL_UART_Transmit(&huart1,(uint8_t *) bufferData, strlen(bufferData), 100);			
+//	HAL_UART_Transmit(&huart6,(uint8_t *) bufferData, strlen(bufferData), 100);
+}
+
+void sendDataSegment2(void){
+	char bufferData [100];
+
+	dataSeg[0] = 2;
+	dataSeg[1] = 2;
+	dataSeg[2] = 1;
+	dataSeg[3] = 1;
+	sprintf(bufferData, "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,\r\n", 
+	dataSeg[0], dataSeg[1], dataSeg[2], dataSeg[3],dataSeg[4],dataSeg[5], dataSeg[6], dataSeg[7], 
+	dataSeg[8],dataSeg[9],dataSeg[10], dataSeg[11], dataSeg[12], dataSeg[13],dataSeg[14],dataSeg[15]);
+	
+//	HAL_UART_Transmit(&huart1,(uint8_t *) bufferData, strlen(bufferData), 100);			// aktifkan apabila sudah selesai test
+	HAL_UART_Transmit(&huart6,(uint8_t *) bufferData, strlen(bufferData), 100);
+}
+void sendDataSegment3(void){
+	char bufferData [100];
+
+	dataSeg[0] = 1;
+	dataSeg[1] = 2;
+	dataSeg[2] = 1;
+	dataSeg[3] = 2;
+	sprintf(bufferData, "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,\r\n", 
+	dataSeg[0], dataSeg[1], dataSeg[2], dataSeg[3],dataSeg[4],dataSeg[5], dataSeg[6], dataSeg[7], 
+	dataSeg[8],dataSeg[9],dataSeg[10], dataSeg[11], dataSeg[12], dataSeg[13],dataSeg[14],dataSeg[15]);
+	
+//	HAL_UART_Transmit(&huart1,(uint8_t *) bufferData, strlen(bufferData), 100);			// aktifkan apabila sudah selesai test
+	HAL_UART_Transmit(&huart6,(uint8_t *) bufferData, strlen(bufferData), 100);
 }

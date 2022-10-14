@@ -200,7 +200,7 @@ void SysTick_Handler(void)
 		counter1++;
 		if(counter1 >= 100){
 				getSensor();
-				interface();					// TOMBOL INTERFACE
+				interface();					// TOMBOL INTERFACE 
 				counter1 = 0;
 	}
   /* USER CODE END SysTick_IRQn 1 */

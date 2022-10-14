@@ -126,6 +126,7 @@ int main(void)
 	LCD_Putsxy(0, 1,"==> FIRE ALARM <==");
 	DWT_Delayms(1000);
 	LCD_Clear();
+	int increm = 0;
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -157,7 +158,6 @@ int main(void)
 				if(flagRx == true){parsingDataF1();}					//Parsing DATA
 				modeSingleWire();
 				//checkSortAndOpenCircuit();
-				//checkOverCurrentSensor();
 				//checkSupply();
 			}else if(selectedSensingMode == 2){
 				LCD_Putsxy(14,0, "MUTANT 2.0");
@@ -165,23 +165,37 @@ int main(void)
 				if(flagRx == true){parsingDataF1();}					//Parsing DATA
 				modeCrossWire();
 				//checkSortAndOpenCircuit();
-				//checkOverCurrentSensor();
 				//checkSupply();
 			}
 		}
 		 //UNTUK TEST UART
-		 /*
+	/*	 
 		if(USART_status == false){
 			sendDateTime();
 			USART_status = true;
 		}
-		  if(flagRx == true){
+		
+		if(USART_status == true){
+			if(increm >= 0 && increm <= 100){
+				sendDataSegment();
+			}else if(increm > 100 && increm <= 200){
+				sendDataSegment2();
+			}else if(increm > 200 && increm <= 300){
+				sendDataSegment3();
+			} else if(increm > 300){
+				increm = 0;
+			}
+			increm++;
+			HAL_Delay(1000);
+		}
+		*/
+//		  if(flagRx == true){
 //				sprintf(bufferr, "Received :  %s \r\n", stringBuffer);
 //				HAL_UART_Transmit(&huart6,(uint8_t *) bufferr, strlen(bufferr), 100);
 	
-				parsingDataF1();					//Parsing stringBuffer
-	  }
-		*/
+//				parsingDataF1();					//Parsing stringBuffer
+//	  }
+		
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
