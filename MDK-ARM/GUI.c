@@ -97,17 +97,21 @@ void interface(void){
 }
 void inMaintananceFunction(void){
 	if(!buttonPress(BUTTON_PROG_PORT, BUTTON_PROG_PIN, 500)){
-		while(1){
 			LCD_Clear();
+		while(1){
+//			LCD_Clear();
 			LCD_Putsxy(0,0, "TROUBLE 3 MAINTANANCE");
-			LCD_Putsxy(0, 1, dateTime);
+//			LCD_Putsxy(0, 1, dateTime);
+//			DWT_Delayms(1000);
 			if(!buttonPress(BUTTON_RESET_PORT, BUTTON_RESET_PIN, 500)){
+				LCD_Clear();
 				break;
 			}
 		}
 	}
 }
 void testFunction(void){ //DONE
+	
 	if(!buttonPress(BUTTON_TEST_PORT, BUTTON_TEST_PIN, 500)){
 		LCD_Clear();
 		while(1){
@@ -185,7 +189,8 @@ void muteFunction(void){
 				LCD_Putsxy(0,0,"MUTE");
 				if(!buttonPress(BUTTON_RESET_PORT, BUTTON_RESET_PIN, 500)){
 					LCD_Clear();
-					break;}
+					break;
+				}
 			}
 		}
 	}
@@ -197,7 +202,7 @@ void troubleFunction(void){
 	/*Jika Power AC Loss*/
 	LCD_Putsxy(1,0, "AC Power Loss");
 	
-	/*SIstem Disable*/
+	/*Sistem Disable*/
 	/* Parameternya APAAA?? */
 }
 void zone(int zoneIndex, char temp[]){
@@ -420,14 +425,31 @@ int menuSetNameZone(void){
 		namezone();
 		if(!buttonPress(BUTTON_LEFT_PORT, BUTTON_LEFT_PIN, 500)){
 			// check the used zone
-					if(strlen(temp1) > 1) {
+			for(int i = 0; i < 16; i++){
+				if(strlen(i == 0 ? temp1 : i == 1 ? temp2 : i == 2 ? temp3 : i == 3 ? temp4 : i == 4 ? temp5 : i == 5 ? temp6 : i == 6 ? temp7 : i == 7 ? temp8 : i == 8 ? temp9 : i == 9 ? temp10 : i == 10 ? temp11 : i == 11 ? temp12 : i == 12 ? temp13 : i == 13 ? temp14 : i == 14 ? temp15 : temp16) > 1)
+					{
 						count++;
-						zoneUse[0] = 1;
+						// zoneUse[i] = i + 1;
+						zoneUse[i] = 1;					// 1 => Used
+					}else{
+						zoneUse[i] = 0; 				// 0 => Not Used
 					}
-					if(strlen(temp2) > 1) {
-						count++;
-						zoneUse[1] = 2;
-					}
+			}
+			
+			// validate the used zone
+			for(int i =0; i<16; i++){
+				if(zoneUse[i] == 0){
+						limitOn(i);		
+				}
+			}
+//					if(strlen(temp1) > 1) {
+//						count++;
+//						zoneUse[0] = 1;
+//					}
+//					if(strlen(temp2) > 1) {
+//						count++;
+//						zoneUse[1] = 2;
+//					}
 				
 				if(count != 0){
 					flagSetName = true;
